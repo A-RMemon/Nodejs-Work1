@@ -13,7 +13,6 @@ const profileModel = require("../Models/profileModel");
 
 exports.signup = async (req, res) => {
   try {
-    console.log(req.body)
     let emailValidate = await userValidate.validate(req.body)
     if (emailValidate.error) {
       return res.status(400).json({
@@ -190,14 +189,45 @@ exports.login = async(req,res)=> {
           message:'invalid password',
         });
       }
+      let token = jwt.sign({ _id: userCheck._id }, secret, { expiresIn: '2h' });
       if(userCheck.verify == false){
+        const transporter = nodemailer.createTransport({
+          host: "smtp.ethereal.email",
+          service: "gmail",
+          port: 587,
+          secure: false, // true for port 465, false for other ports
+          auth: {
+            user: process.env.smtpemail,
+            pass: process.env.smtppasskey,
+          },
+          tls: {
+            rejectUnauthorized: false
+          }
+        });
+    
+        async function main() {
+          // send mail with defined transport object
+          const info = await transporter.sendMail({
+            from: process.env.smtpemail, // sender address
+            to: email, // list of receivers
+            subject: "Verification OTP", // Subject line
+            //   text: "Hello world?", // plain text body
+            html: `<b>Your Otp is ${ userCheck.otpCode}</b>`, // html body
+          });
+        }
+        main().catch(console.error);
+    
         return res.status(400).json({
           message: 'please first verify',
+          token,
+          otp: userCheck.otpCode
+
         });
       }
       return res.status(200).json({
         message: 'Login success',
-        data : userCheck
+        data : userCheck,
+        token
       });
     }
   } catch (error) {
