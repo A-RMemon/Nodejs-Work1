@@ -1,3 +1,4 @@
+const { populate } = require("../Models/authModel")
 const todoModel = require("../Models/todoModel")
 const todoValidate = require("../Validator/todoValidate")
 
@@ -31,7 +32,13 @@ exports.create = async (req,res)=>{
 }
 exports.getallTodos = async(req,res) => {
   try {
-    let todos =await todoModel.find({userId:req._id})
+    let todos =await todoModel.find({userId:req._id}).populate({
+      path:"userId",
+      populate:({
+        path:"profileId",
+        select:"image age"
+      })
+    })
     console.log(todos)
     return res.status(200).json({
       message: 'all Todos of this user',
@@ -48,9 +55,12 @@ exports.getallTodos = async(req,res) => {
   }
 }
 
-exports.deleteTodo = (req,res) => {
+exports.deleteTodo = async(req,res) => {
   try {
-    console.log(req.params);
+    console.log(req.params.id);
+    // let deleteTodo = await todoModel.findByIdAndDelete(req.params.id); //one trick and second is
+    let deleteTodo = await todoModel.findOneAndDelete({_id:req.params.id,userId:req._id}); //other one
+    
     
     return res.status(200).json({
       message: 'delete todo successfully',
@@ -65,3 +75,19 @@ exports.deleteTodo = (req,res) => {
   }
 }
 
+exports.updateTodo = async (req,res) => {
+  try {
+    let updateTodo = await todoModel.findOneAndUpdate({_id:req.params.id,userId:req._id},{title: req.body.title}); //other one
+    return res.status(200).json({
+      message: 'updated Successfully successfully',
+      updateTodo
+    })
+    
+  } catch (error) {
+    return res.status(200).json({
+      message: 'error',
+     error
+    })
+
+  }
+}

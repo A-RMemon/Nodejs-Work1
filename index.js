@@ -26,10 +26,6 @@ app.use(bodyParser.urlencoded({ extended: false }));
 app.use(bodyParser.json());
 const mainRouter = require("./router/mainRouter");
 
-
-
-
-
 // app.use(cors({origin:['http://localhost:5000',"http://127.0.0.1:5500",'http://localhost:5173']}))
 app.use(cors());
 app.use(mainRouter)
@@ -37,16 +33,3 @@ app.use(mainRouter)
 app.listen(port,()=>{
     console.log(`Server is running on port ${port}`);
 });
-
-
-
-// let arr = []
-
-// app.post('/',(req,res)=>{
-//     arr.push(req.body)
-//     console.log(arr)
-//     res.status(200).json(req.body)
-// })
-// app.get('/',(req,res)=>{
-//     res.status(200).json(arr)
-// })

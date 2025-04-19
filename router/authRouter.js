@@ -11,6 +11,7 @@ const upload = multer({ storage: storage })
 
 router.post('/signup',authController.signup);
 router.post('/verifyotp',authMiddleware,authController.verifyOtp);
+router.post('/userTodos',authMiddleware,authController.getUserTodos );
 router.post('/completeProfile',authMiddleware,upload.single("image"),authController.completeProfile)
 router.post('/login',authController.login);
 

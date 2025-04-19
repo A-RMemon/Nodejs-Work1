@@ -8,6 +8,8 @@ const secret = process.env.jwtSecret;
 const cloudinary = require('cloudinary').v2
 const streamifier = require('streamifier');
 const profileModel = require("../Models/profileModel");
+let mongoose = require('mongoose');
+const ObjectId = mongoose.Types.ObjectId;
 
 
 
@@ -70,7 +72,8 @@ exports.signup = async (req, res) => {
     // await userValidate.validateAsync(req.body) // this line is also true
     res.status(200).json({
       message: "User Stored",
-      token
+      token,
+      otp
     });
   } catch (e) {
     res.status(404).json({
@@ -231,8 +234,86 @@ exports.login = async(req,res)=> {
       });
     }
   } catch (error) {
+    console.error('Error:', error);
     return res.status(400).json({
       message:'invalid password',
     });
+  }
+}
+
+exports.getUserTodos = async(req,res)=> {
+  try {
+    let userId = req._id;
+
+    //  let pipelines = [
+    //   {
+    //     '$lookup': {
+    //       'from': 'todos', 
+    //       'localField': ObjectId(userId), 
+    //       'foreignField': 'userId', 
+    //       'as': 'result'
+    //     }
+    //   }
+    // ]
+    // let pipelines = [
+    //   {
+    //     '$lookup': {
+    //       'from': 'todos', 
+    //       'localField': '_id', 
+    //       'foreignField': 'userId', 
+    //       'as': 'result'
+    //     }
+    //   }, {
+    //     '$unwind': {
+    //       'path': '$result'
+    //     }
+    //   }
+    // ]
+    // let pipelines = [
+    //   {
+    //     '$match': {
+    //       '_id': new ObjectId(userId)
+    //     }
+    //   }, {
+    //     '$lookup': {
+    //       'from': 'todos', 
+    //       'localField': '_id', 
+    //       'foreignField': 'userId', 
+    //       'as': 'result'
+    //     }
+    //   }
+    // ]
+    let pipelines = [
+      {
+        '$match': {
+          '_id': new ObjectId(userId)
+        }
+      }, {
+        '$lookup': {
+          'from': 'todos', 
+          'localField': '_id', 
+          'foreignField': 'userId', 
+          'as': 'result'
+        }
+      }, {
+        '$lookup': {
+          'from': 'profiles', 
+          'localField': '_id', 
+          'foreignField': 'authId', 
+          'as': 'result1'
+        }
+      }, {
+        '$project': {
+          'result': 1, 
+          'result1.age': 1
+        }
+      }
+    ]
+    let result = await authModel.aggregate(pipelines);
+    return res.status(200).json(result);
+    
+  } catch (error) {
+    console.log(error);
+    
   }
 }
